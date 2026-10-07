@@ -10,7 +10,7 @@ No signup. No per-seat or per-mailbox fees. Docker Compose and a SQLite file. Ab
 
 **What it is not:** no warmup network, no lead database, scraping, enrichment or email-finding, no open-tracking pixel, no click tracking or link rewriting, no AI. Bring your own leads and your own mailboxes.
 
-> **Check your domains with [SenderGrade](https://github.com/aidendify/sendergrade) first.** SPF, DKIM and DMARC must be aligned before you send anything.
+> **Check your domains with SenderGrade first.** SPF, DKIM and DMARC must be aligned before you send anything.
 
 ## Contents
 
@@ -40,11 +40,13 @@ sudo usermod -aG docker $USER   # log out and back in, or prefix docker commands
 
 **Debian 13 (trixie) note:** the distro packages work: `sudo apt-get install -y docker.io docker-compose git`. Debian's `docker-compose` package provides the v2 CLI as `docker-compose` (with a hyphen), so use `docker-compose ...` wherever this README says `docker compose ...`. If the `docker compose` plugin form is missing, that's expected.
 
-### 2. Configure
+### 2. Unpack and configure
+
+Download the release zip, unzip it, and enter the folder:
 
 ```bash
-git clone https://github.com/aidendify/coldlane.git
-cd coldlane
+unzip coldlane.zip
+cd coldlane   # or the folder name inside the zip
 cp .env.example .env
 ```
 
@@ -62,10 +64,19 @@ Then edit `.env`:
 - `PUBLIC_BASE_URL`: the public URL of this server, e.g. `https://coldlane.example.com`. It goes into every unsubscribe link, so **recipients must be able to reach it**. Campaigns can't start without it.
 - `SENDER_BUSINESS_NAME` and `SENDER_ADDRESS`: your business name and **physical postal address** for the mandatory footer.
 
+**Optional — install from git instead of the zip:**
+
+```bash
+git clone https://github.com/aidendify/coldlane.git
+cd coldlane
+cp .env.example .env
+# then generate ENCRYPTION_KEY and edit .env as above
+```
+
 ### 3. Start
 
 ```bash
-docker compose up --build -d
+docker compose up -d --build
 docker compose ps                         # web should be "healthy"
 curl -s http://127.0.0.1:8080/health      # {"status":"ok","worker_ok":true,...}
 ```
@@ -201,7 +212,7 @@ How that maps to the rules:
 
 - **CAN-SPAM (US):** use accurate header information (real From name and address, honest routing) and non-deceptive subject lines. Include your valid physical postal address (the footer). Give a clear way to opt out and honor it within 10 business days. ColdLane does it instantly and permanently via the suppression list.
 - **GDPR / PECR (EU/UK):** you need a lawful basis, typically legitimate interest for B2B outreach, and you should document your legitimate-interest assessment. B2B rules vary by country: some EU states require prior consent even for business addresses, and under PECR sole traders and some partnerships count as individuals. Honor the right to object: an unsubscribe or opt-out reply goes onto the global suppression list. Practice data minimization: import only the fields you need, and delete leads and campaigns you no longer need.
-- **Gmail / Yahoo bulk-sender rules:** authenticate with SPF and DKIM and publish DMARC with alignment to your From domain ([SenderGrade](https://github.com/aidendify/sendergrade) checks this). Support one-click unsubscribe (built in) and keep spam complaint rates under 0.3% (aim far lower: send small volumes to well-targeted lists).
+- **Gmail / Yahoo bulk-sender rules:** authenticate with SPF and DKIM and publish DMARC with alignment to your From domain (SenderGrade checks this). Support one-click unsubscribe (built in) and keep spam complaint rates under 0.3% (aim far lower: send small volumes to well-targeted lists).
 
 **You, the operator, are responsible for lawful use. ColdLane is not legal advice.**
 
