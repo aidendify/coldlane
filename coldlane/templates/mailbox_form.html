@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ 'Add mailbox' if is_new else 'Edit mailbox' }}</h1>
+{% if not is_new %}
+  <div class="card">
+    <p>Today sent / effective cap: <b>{{ today }} / {{ cap }}</b>{% if mb.first_send_date %} · first send {{ mb.first_send_date }}{% endif %}</p>
+    {% if mb.paused_reason %}<div class="banner warn">Paused: {{ mb.paused_reason }}</div>{% endif %}
+    {% if mb.last_error %}<p class="small">Last error: {{ mb.last_error }}</p>{% endif %}
+    <form method="post" action="{{ url_for('mailbox_test', mailbox_id=mailbox_id) }}" class="inline"><button>Test connection</button></form>
+  </div>
+{% endif %}
+<form method="post" class="card grid">
+  <fieldset><legend>Identity</legend>
+    <label>Label <input name="label" value="{{ mb.label or '' }}"></label>
+    <label>From name <input name="from_name" value="{{ mb.from_name or '' }}"></label>
+    <label>From email <input name="from_email" type="email" required value="{{ mb.from_email or '' }}"></label>
+    <label>Signature (plain text) <textarea name="signature" rows="3">{{ mb.signature or '' }}</textarea></label>
+    <label>Sender postal address override (optional; falls back to Settings / SENDER_ADDRESS) <textarea name="sender_address" rows="2">{{ mb.sender_address or '' }}</textarea></label>
+  </fieldset>
+  <fieldset><legend>SMTP</legend>
+    <label>Host <input name="smtp_host" required value="{{ mb.smtp_host or '' }}"></label>
+    <label>Port <input name="smtp_port" type="number" min="1" max="65535" value="{{ mb.smtp_port or 587 }}"></label>
+    <label>Security
+      <select name="smtp_security">
+        {% for opt in ['starttls', 'ssl', 'none'] %}<option value="{{ opt }}" {% if (mb.smtp_security or 'starttls') == opt %}selected{% endif %}>{{ opt }}</option>{% endfor %}
+      </select></label>
+    <label>Username <input name="smtp_user" value="{{ mb.smtp_user or '' }}" autocomplete="off"></label>
+    <label>Password / app password <input name="smtp_password" type="password" autocomplete="new-password" placeholder="{{ '' if is_new else 'saved (encrypted) · leave blank to keep' }}"></label>
+  </fieldset>
+  <fieldset><legend>IMAP (reply + bounce detection, read-only)</legend>
+    <label>Host (blank = SMTP host) <input name="imap_host" value="{{ mb.imap_host or '' }}"></label>
+    <label>Port <input name="imap_port" type="number" min="1" max="65535" value="{{ mb.imap_port or 993 }}"></label>
+    <label class="check"><input type="checkbox" name="imap_ssl" value="1" {% if mb.imap_ssl %}checked{% endif %}> SSL</label>
+    <label>Username (blank = SMTP username) <input name="imap_user" value="{{ mb.imap_user or '' }}" autocomplete="off"></label>
+    <label>Password (blank = {{ 'same as SMTP' if is_new else 'keep saved' }}) <input name="imap_password" type="password" autocomplete="new-password"></label>
+  </fieldset>
+  <fieldset><legend>Sending limits</legend>
+    <label>Daily cap (1–100) <input name="daily_cap" type="number" min="1" max="100" value="{{ mb.daily_cap }}"></label>
+    <label class="check"><input type="checkbox" name="ramp_enabled" value="1" {% if mb.ramp_enabled %}checked{% endif %}> Ramp-up (effective cap = min(daily cap, RAMP_START + RAMP_STEP × days since first send))</label>
+    <label class="check"><input type="checkbox" name="active" value="1" {% if mb.active %}checked{% endif %}> Active</label>
+    {% if not is_new and mb.paused_reason %}<label class="check"><input type="checkbox" name="clear_pause" value="1"> Clear auto-pause</label>{% endif %}
+  </fieldset>
+  <div><button>Save mailbox</button></div>
+</form>
+{% endblock %}

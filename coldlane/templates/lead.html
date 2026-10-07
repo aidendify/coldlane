@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ lead.email }} <span class="pill {{ lead.status }}">{{ lead.status }}</span></h1>
+<p><a href="{{ url_for('campaign_leads', campaign_id=campaign.id) }}">← {{ campaign.name }} leads</a></p>
+<div class="card">
+  <p>Current step: {{ lead.current_step }} · Mailbox: {{ lead.mailbox_email or 'not assigned yet' }} · Last sent: {{ lead.last_sent_at or 'never' }}{% if lead.last_sent_at %} UTC{% endif %}</p>
+  {% if lead.wait_reason %}<p>Waiting / note: {{ lead.wait_reason }}</p>{% endif %}
+  {% if lead.reply_snippet %}<p><b>Reply snippet:</b> {{ lead.reply_snippet }}</p>{% endif %}
+  <p class="small">Unsubscribe link: <code>{{ unsub_url }}</code></p>
+  <p class="small">Merge fields: {% for k, v in fields.items() %}<code>{{ k }}</code>={{ v }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+</div>
+<h2>Sends</h2>
+<table class="small"><thead><tr><th>Step</th><th>Mailbox</th><th>Message-ID</th><th>At (UTC)</th><th>Status</th><th>SMTP result</th><th>Attempt</th></tr></thead><tbody>
+{% for s in sends %}<tr><td>{{ s.step_pos }}</td><td>{{ s.mailbox_email }}</td><td><code>{{ s.message_id }}</code></td><td>{{ s.sent_at }}</td><td>{{ s.status }}</td><td>{{ s.smtp_result }}</td><td>{{ s.attempt }}</td></tr>
+{% else %}<tr><td colspan="7" class="muted">Nothing sent yet.</td></tr>{% endfor %}
+</tbody></table>
+<h2>Events</h2>
+<table class="small"><thead><tr><th>At (UTC)</th><th>Kind</th><th>Detail</th></tr></thead><tbody>
+{% for e in events %}<tr><td>{{ e.at }}</td><td>{{ e.kind }}</td><td>{{ e.detail }}</td></tr>
+{% else %}<tr><td colspan="3" class="muted">No events.</td></tr>{% endfor %}
+</tbody></table>
+{% endblock %}

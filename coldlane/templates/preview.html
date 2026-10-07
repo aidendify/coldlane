@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Preview: {{ campaign.name }} (step 1, first 3 leads)</h1>
+<p><a href="{{ url_for('campaign_detail', campaign_id=campaign.id) }}">← back to campaign</a></p>
+{% if not has_steps %}<p class="muted">Add step 1 first.</p>{% endif %}
+{% for p in previews %}
+<div class="card">
+  <p class="small muted">To: {{ p.lead.email }}</p>
+  {% if p.error %}<div class="flash error">merge_error: {{ p.error }} (this lead will be skipped, never sent with literal braces)</div>
+  {% else %}<p><b>Subject:</b> {{ p.subject }}</p><pre>{{ p.text }}</pre>{% endif %}
+</div>
+{% else %}{% if has_steps %}<p class="muted">Import leads to preview.</p>{% endif %}{% endfor %}
+{% endblock %}

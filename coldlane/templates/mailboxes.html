@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row-between">
+  <h1>Mailboxes</h1>
+  <a class="btn" href="{{ url_for('mailbox_new') }}">Add mailbox</a>
+</div>
+<table>
+<thead><tr><th>Label</th><th>From</th><th>Today sent / effective cap</th><th>Daily cap</th><th>Ramp</th><th>Status</th><th>Sender address</th><th>Last error</th></tr></thead>
+<tbody>
+{% for mb, today, cap, sender in rows %}
+<tr>
+  <td><a href="{{ url_for('mailbox_edit', mailbox_id=mb.id) }}">{{ mb.label }}</a></td>
+  <td>{{ mb.from_email }}</td>
+  <td>{{ today }} / {{ cap }}</td>
+  <td>{{ mb.daily_cap }}</td>
+  <td>{{ 'on' if mb.ramp_enabled else 'off' }}</td>
+  <td>{% if not mb.active %}<span class="pill paused">inactive</span>{% elif mb.paused_reason %}<span class="pill paused">paused</span> {{ mb.paused_reason }}{% else %}<span class="pill active">active</span>{% endif %}</td>
+  <td>{% if sender[1] %}{{ sender[1] }}{% else %}<span class="err">missing</span>{% endif %}</td>
+  <td class="small">{{ mb.last_error or '' }}{% if mb.last_error_at %} <span class="muted">({{ mb.last_error_at }} UTC)</span>{% endif %}</td>
+</tr>
+{% else %}
+<tr><td colspan="8" class="muted">No mailboxes yet.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

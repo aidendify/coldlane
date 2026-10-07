@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>New campaign</h1>
+{% set campaign = None %}{% set assigned = None %}{% set days = [] %}
+{% set steps = [{'position': 1, 'subject': '', 'body': '', 'delay': 0, 'unit': 'days'}, {'position': 2, 'subject': '', 'body': '', 'delay': 3, 'unit': 'days'}, {'position': 3, 'subject': '', 'body': '', 'delay': 3, 'unit': 'days'}, {'position': 4, 'subject': '', 'body': '', 'delay': 3, 'unit': 'days'}, {'position': 5, 'subject': '', 'body': '', 'delay': 3, 'unit': 'days'}] %}
+<form method="post" class="card">
+  {% include "_campaign_fields.html" %}
+  <button>Create campaign</button>
+</form>
+{% endblock %}

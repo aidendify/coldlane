@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Settings</h1>
+<div class="banner info"><b>Open/click tracking: off. ColdLane does not track opens or clicks.</b> No tracking pixel, no link rewriting.</div>
+<form method="post" class="card">
+  <h2>Sender identity (mandatory footer)</h2>
+  <p class="small muted">Every email ends with a footer you can't remove: business name, physical postal address and an unsubscribe link. Values saved here override <code>SENDER_BUSINESS_NAME</code> / <code>SENDER_ADDRESS</code> from .env. A field saved blank here counts as empty (it does not fall back to .env), so campaigns can't start until an address is set. Use "Use .env values" to remove the overrides.</p>
+  <label>Business name <input name="sender_business_name" value="{{ business }}"></label>
+  <label>Physical postal address <textarea name="sender_address" rows="3">{{ address }}</textarea></label>
+  <p class="small muted">Source: business name {{ 'Settings' if overrides.sender_business_name is not none else '.env' }}, address {{ 'Settings' if overrides.sender_address is not none else '.env' }}. .env values: "{{ env_business }}" / "{{ env_address }}"</p>
+  <button name="action" value="save">Save</button>
+  <button name="action" value="reset" class="secondary">Use .env values</button>
+</form>
+<div class="card">
+  <h2>Sending defaults (from .env)</h2>
+  <table class="small">{% for k, v in defaults.items() %}<tr><td><code>{{ k }}</code></td><td>{{ v }}</td></tr>{% endfor %}</table>
+  <p class="small muted">Daily caps reset at midnight in the container's timezone (UTC by default).</p>
+</div>
+{% endblock %}

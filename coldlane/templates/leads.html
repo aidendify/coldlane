@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Leads: {{ campaign.name }}</h1>
+<p><a href="{{ url_for('campaign_detail', campaign_id=campaign.id) }}">← back to campaign</a> · <a href="{{ url_for('export_leads', campaign_id=campaign.id) }}">Export leads.csv</a></p>
+<form method="get" class="inline">
+  <label>Status
+    <select name="status" onchange="this.form.submit()">
+      <option value="">all</option>
+      {% for s in statuses %}<option value="{{ s }}" {% if s == status %}selected{% endif %}>{{ s }} ({{ stats.statuses[s] }})</option>{% endfor %}
+      <option value="waiting_cap" {% if status == 'waiting_cap' %}selected{% endif %}>waiting on cap ({{ stats.waiting_cap }})</option>
+    </select></label>
+  <noscript><button>Filter</button></noscript>
+</form>
+<table>
+<thead><tr><th>Email</th><th>Status</th><th>Current step</th><th>Mailbox</th><th>Last sent (UTC)</th><th>Waiting / note</th><th>Reply snippet</th></tr></thead>
+<tbody>
+{% for l in leads %}
+<tr>
+  <td><a href="{{ url_for('lead_detail', lead_id=l.id) }}">{{ l.email }}</a></td>
+  <td><span class="pill {{ l.status }}">{{ l.status }}</span></td>
+  <td>{{ l.current_step }}</td>
+  <td>{{ l.mailbox_email or '' }}</td>
+  <td>{{ l.last_sent_at or '' }}</td>
+  <td class="small">{{ l.wait_reason or '' }}</td>
+  <td class="small">{{ l.reply_snippet or '' }}</td>
+</tr>
+{% else %}<tr><td colspan="7" class="muted">No leads.</td></tr>{% endfor %}
+</tbody>
+</table>
+{% endblock %}

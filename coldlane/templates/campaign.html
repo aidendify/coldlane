@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row-between">
+  <h1>{{ campaign.name }} <span class="pill {{ campaign.status }}">{{ campaign.status }}</span></h1>
+  <div class="actions">
+    {% if campaign.status in ['draft', 'completed'] %}<form method="post" action="{{ url_for('campaign_start', campaign_id=campaign.id) }}" class="inline"><button>Start campaign</button></form>{% endif %}
+    {% if campaign.status == 'active' %}<form method="post" action="{{ url_for('campaign_pause', campaign_id=campaign.id) }}" class="inline"><button>Pause</button></form>{% endif %}
+    {% if campaign.status == 'paused' %}<form method="post" action="{{ url_for('campaign_resume', campaign_id=campaign.id) }}" class="inline"><button>Resume</button></form>{% endif %}
+    <a class="btn secondary" href="{{ url_for('campaign_preview', campaign_id=campaign.id) }}">Preview</a>
+    <a class="btn secondary" href="{{ url_for('campaign_leads', campaign_id=campaign.id) }}">Leads</a>
+    <a class="btn secondary" href="{{ url_for('export_leads', campaign_id=campaign.id) }}">leads.csv</a>
+  </div>
+</div>
+{% if campaign.paused_reason and campaign.status == 'paused' %}<div class="banner warn">{{ campaign.paused_reason }}</div>{% endif %}
+{% if start_errors %}<div class="banner info"><b>Not ready to start yet:</b><ul>{% for e in start_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+
+<div class="stats">
+  <div><b>{{ stats.sent }}</b><span>sent</span></div>
+  <div><b>{{ stats.replied }}</b><span>replied</span></div>
+  <div><b>{{ stats.bounced }}</b><span>bounced</span></div>
+  <div><b>{{ stats.unsubscribed }}</b><span>unsubscribed</span></div>
+  <div><b>{{ stats.queued }}</b><span>remaining queued</span></div>
+  <div><b>{{ stats.waiting_cap }}</b><span>waiting on cap</span></div>
+  <div><b>{{ stats.reply_rate }}%</b><span>reply rate</span></div>
+  <div><b>{{ stats.bounce_rate }}%</b><span>bounce rate</span></div>
+</div>
+<p class="small">Per-step sent: {% for s in steps if s.body %}Step {{ s.position }}: <b>{{ stats.per_step.get(s.position, 0) }}</b>{% if not loop.last %} · {% endif %}{% endfor %}
+ · Lead statuses: {% for k, v in stats.statuses.items() if v %}{{ k }} {{ v }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+
+<div class="card">
+  <h2>Import leads (CSV)</h2>
+  <p class="small muted"><code>email</code> column required; other columns become merge fields. Emails are validated, lowercased and deduped. Addresses on the suppression list import as <code>suppressed</code> and are never sent.</p>
+  <form method="post" action="{{ url_for('campaign_import', campaign_id=campaign.id) }}" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".csv,text/csv" required>
+    <label>Acknowledged by <input name="acknowledged_by" value="owner" class="short"></label>
+    <label class="check"><input type="checkbox" name="lawful_basis" value="1"> I confirm I have a lawful basis to email these contacts and will honor opt-outs.</label>
+    <button>Import</button>
+  </form>
+  {% if imports %}<table class="small"><thead><tr><th>File</th><th>Rows</th><th>Queued</th><th>Suppressed</th><th>Invalid</th><th>Duplicates</th><th>Acknowledged by / at (UTC)</th></tr></thead><tbody>
+  {% for i in imports %}<tr><td>{{ i.filename }}</td><td>{{ i.rows }}</td><td>{{ i.accepted }}</td><td>{{ i.suppressed }}</td><td>{{ i.invalid }}</td><td>{{ i.duplicates }}</td><td>{{ i.acknowledged_by }} · {{ i.acknowledged_at }}</td></tr>{% endfor %}
+  </tbody></table>{% endif %}
+</div>
+
+<form method="post" class="card">
+  <h2>Settings, mailboxes and steps</h2>
+  {% include "_campaign_fields.html" %}
+  <button>Save campaign</button>
+</form>
+{% endblock %}

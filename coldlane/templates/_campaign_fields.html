@@ -1,0 +1,26 @@
+<fieldset><legend>Campaign</legend>
+  <label>Name <input name="name" required value="{{ campaign.name if campaign else '' }}"></label>
+  <label>Timezone (IANA) <input name="timezone" value="{{ campaign.timezone if campaign else 'UTC' }}"></label>
+  <div>Send days:
+    {% for name in day_names %}<label class="check inline"><input type="checkbox" name="window_days" value="{{ loop.index0 }}" {% if (campaign and loop.index0 in days) or (not campaign and loop.index0 < 5) %}checked{% endif %}> {{ name }}</label>{% endfor %}
+  </div>
+  <label>Window start hour (0–23) <input name="window_start_hour" type="number" min="0" max="23" value="{{ campaign.window_start_hour if campaign else 9 }}"></label>
+  <label>Window end hour (1–24, exclusive) <input name="window_end_hour" type="number" min="1" max="24" value="{{ campaign.window_end_hour if campaign else 17 }}"></label>
+</fieldset>
+<fieldset><legend>Mailboxes (rotation; each lead sticks to one)</legend>
+  {% for mb in all_mailboxes %}
+  <label class="check"><input type="checkbox" name="mailboxes" value="{{ mb.id }}" {% if assigned and mb.id in assigned %}checked{% endif %}> {{ mb.label }} &lt;{{ mb.from_email }}&gt;{% if not mb.active or mb.paused_reason %} (inactive/paused){% endif %}</label>
+  {% else %}<p class="muted">No mailboxes yet. <a href="{{ url_for('mailbox_new') }}">Add one</a>.</p>{% endfor %}
+</fieldset>
+<fieldset><legend>Steps (1–5)</legend>
+  <p class="small muted">Merge fields: <code>{{ '{{first_name}}' }}</code>, <code>{{ '{{company}}' }}</code>, any CSV column; fallback: <code>{{ '{{first_name|there}}' }}</code>. A lead with a missing field and no fallback is skipped as <code>merge_error</code>. Leave a later step's subject empty to send it as a reply in the same thread ("Re: step 1 subject"). A footer with your business name, postal address and unsubscribe link is always added.</p>
+  {% for s in steps %}
+  <div class="step">
+    <h3>Step {{ s.position }}</h3>
+    {% if s.position > 1 %}<label>Delay after previous step <input name="delay_{{ s.position }}" type="number" min="0" value="{{ s.delay }}" class="short">
+      <select name="delay_unit_{{ s.position }}">{% for u in ['minutes', 'hours', 'days'] %}<option {% if s.unit == u %}selected{% endif %}>{{ u }}</option>{% endfor %}</select></label>{% endif %}
+    <label>Subject{% if s.position == 1 %} (required){% else %} (empty = reply in thread){% endif %} <input name="subject_{{ s.position }}" value="{{ s.subject }}"></label>
+    <label>Body (plain text) <textarea name="body_{{ s.position }}" rows="5">{{ s.body }}</textarea></label>
+  </div>
+  {% endfor %}
+</fieldset>

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Log in · ColdLane{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>ColdLane</h1>
+  {% if not configured %}<div class="flash error">OWNER_PASSWORD is not set in .env. Set it and restart.</div>{% endif %}
+  <form method="post">
+    <label>Owner password <input type="password" name="password" autofocus required></label>
+    <button>Log in</button>
+  </form>
+</div>
+{% endblock %}

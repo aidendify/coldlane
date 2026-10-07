@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row-between">
+  <h1>Campaigns</h1>
+  <a class="btn" href="{{ url_for('campaign_new') }}">New campaign</a>
+</div>
+<p class="muted">Worker last tick: {{ last_tick or 'never' }}{% if last_tick %} UTC{% endif %} ·
+Totals: {{ totals.sent }} sent · {{ totals.replied }} replied · {{ totals.bounced }} bounced · {{ totals.unsubscribed }} unsubscribed · {{ totals.queued }} queued</p>
+{% for c, s in rows %}{% if c.paused_reason and c.status == 'paused' %}<div class="banner warn"><b>{{ c.name }}</b>: {{ c.paused_reason }}</div>{% endif %}{% endfor %}
+<table>
+<thead><tr><th>Campaign</th><th>Status</th><th>Sent</th><th>Replied</th><th>Bounced</th><th>Unsubscribed</th><th>Remaining queued</th><th>Waiting on cap</th><th>Reply rate</th><th>Bounce rate</th></tr></thead>
+<tbody>
+{% for c, s in rows %}
+<tr>
+  <td><a href="{{ url_for('campaign_detail', campaign_id=c.id) }}">{{ c.name }}</a></td>
+  <td><span class="pill {{ c.status }}">{{ c.status }}</span></td>
+  <td>{{ s.sent }}</td><td>{{ s.replied }}</td><td>{{ s.bounced }}</td><td>{{ s.unsubscribed }}</td>
+  <td>{{ s.queued }}</td><td>{{ s.waiting_cap }}</td><td>{{ s.reply_rate }}%</td><td>{{ s.bounce_rate }}%</td>
+</tr>
+{% else %}
+<tr><td colspan="10" class="muted">No campaigns yet. Add a mailbox first, then create a campaign.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+<p class="muted"><a href="{{ url_for('export_sends') }}">Export sends.csv</a> · <a href="{{ url_for('export_suppression') }}">Export suppression.csv</a></p>
+{% endblock %}

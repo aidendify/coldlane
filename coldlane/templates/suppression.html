@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Global suppression list <span class="muted small">({{ total }})</span></h1>
+<p class="small muted">Checked at import, at enqueue (start/resume) and immediately before every send, across all campaigns. Sources: unsubscribe, bounce, manual, csv_import, reply_optout.</p>
+<div class="grid2">
+  <form method="post" class="card">
+    <h2>Add</h2>
+    <input type="hidden" name="action" value="add">
+    <label>Email or domain <input name="value" required placeholder="jane@example.com or example.com"></label>
+    <label>Note <input name="note"></label>
+    <button>Suppress</button>
+  </form>
+  <form method="post" class="card" enctype="multipart/form-data">
+    <h2>Import CSV</h2>
+    <input type="hidden" name="action" value="import">
+    <p class="small muted">Rows with an <code>email</code> or <code>domain</code> column (or a single column of either).</p>
+    <input type="file" name="file" accept=".csv,text/csv" required>
+    <button>Import</button>
+  </form>
+</div>
+<p><a href="{{ url_for('export_suppression') }}">Export suppression.csv</a></p>
+<form method="get" class="inline"><input name="q" value="{{ q }}" placeholder="search"> <button>Search</button></form>
+<table>
+<thead><tr><th>Email</th><th>Domain</th><th>Source</th><th>Note</th><th>Added (UTC)</th><th></th></tr></thead>
+<tbody>
+{% for r in rows %}
+<tr><td>{{ r.email or '' }}</td><td>{{ r.domain or '' }}</td><td>{{ r.source }}</td><td class="small">{{ r.note or '' }}</td><td>{{ r.created_at }}</td>
+<td><form method="post" class="inline"><input type="hidden" name="action" value="remove"><input type="hidden" name="id" value="{{ r.id }}"><button class="link">remove</button></form></td></tr>
+{% else %}<tr><td colspan="6" class="muted">Empty.</td></tr>{% endfor %}
+</tbody>
+</table>
+{% endblock %}
