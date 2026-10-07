@@ -1,0 +1,9 @@
+.git
+.env
+*.db*
+__pycache__
+*.pyc
+.venv
+data
+PRD.md
+tests

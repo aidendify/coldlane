@@ -1,0 +1,40 @@
+services:
+  web:
+    build: .
+    image: coldlane:latest
+    env_file: .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - coldlane-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  worker:
+    image: coldlane:latest
+    build: .
+    command: python -m coldlane.worker
+    env_file: .env
+    volumes:
+      - coldlane-data:/data
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_started
+
+  # Offline test mail server (SMTP 3025, IMAP 3143, auth disabled, mailboxes auto-created).
+  # Only started with: docker compose --profile test up -d
+  greenmail:
+    image: greenmail/standalone:2.1.2
+    profiles: ["test"]
+    environment:
+      GREENMAIL_OPTS: "-Dgreenmail.setup.test.all -Dgreenmail.hostname=0.0.0.0 -Dgreenmail.auth.disabled -Dgreenmail.tls.keystore.file=/home/greenmail/greenmail.p12 -Dgreenmail.tls.keystore.password=changeit"
+    restart: unless-stopped
+
+volumes:
+  coldlane-data:
